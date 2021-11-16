@@ -34,7 +34,7 @@ echo "GETTING temporary password"
 sudo grep 'temporary password' /var/log/mysqld.log
 MYSQL_TEMP_PWD=$(sudo grep 'temporary password' /var/log/mysqld.log | awk '{print $13}')
 echo "temp root password: ${MYSQL_TEMP_PWD}"
-
+echo
 echo "GETTING assigned root password"
 MYSQL_ROOT_PWD=$(<${MYSQL_PW_FILE})
 echo "new root password: ${MYSQL_ROOT_PWD}"
@@ -51,18 +51,26 @@ spawn mysql_secure_installation
 expect "Enter password for user root:"
 send "${MYSQL_TEMP_PWD}\r"
 
-expect "The existing password for the user account root has expired. Please set a new password. :
-expect "Change the password for root ? \(Press y|Y for Yes, any other key for No) :"
-send "y\r"
-
+expect {
+  "Change the password for root ? \(Press y|Y for Yes, any other key for No) :" {
+    send "y\r"
+  }
+  "The existing password for the user account root has expired. Please set a new password." {
+  }
+}
 expect "New password:"
 send "${MYSQL_ROOT_PWD}\r"
 
 expect "Re-enter new password:"
 send "${MYSQL_ROOT_PWD}\r"
 
-expect "Do you wish to continue with the password provided?\(Press y|Y for Yes, any other key for No) :"
-send "y\r"
+expect {
+  "Do you wish to continue with the password provided?\(Press y|Y for Yes, any other key for No) :" {
+    send "y\r"
+  }
+  "Change the password for root ? \(Press y|Y for Yes, any other key for No) :" {
+    send "n\r"
+}
 
 expect "Remove anonymous users? \(Press y|Y for Yes, any other key for No) :"
 send "y\r"
@@ -207,5 +215,9 @@ echo "NOW start MySQL with given root password..."
 # echo "$RUN_MYSQL"
 
 # Final Test: Manually uninstall MySQL on this VM to test entire script.
-# rpm erase or yum erase?
-# rm -rf /var/lib/?
+# sudo yum erase mysql-community-server -y
+# sudo rm -rf /var/lib/mysql
+# sudo rm /var/log/mysqld.log
+
+# FINAL Final Test: Destroy this CentOS 7 VM with vagrant destroy & create a
+# new one with vagrant up. Re-scp this file & re-run on clean VM.
