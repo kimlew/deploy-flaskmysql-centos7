@@ -24,6 +24,9 @@ else
   exit 1
 fi
 
+sudo grep 'temporary password' /var/log/mysqld.log
+MYSQL_TEMP_PWD=$(sudo grep 'temporary password' /var/log/mysqld.log | awk '{print $13}')
+
 run_mysql_secure_installation() {
   # From /var/log/mysqld.log, look for phrase for root@localhost:<space>
   # & from there, get all characters up to new line character & save as
@@ -34,11 +37,6 @@ run_mysql_secure_installation() {
   # -f flag means to use a file & - means to use standard input as the file
   # -c flag prefaces a command to be executed before any in the script
   # Use HERE document vs. as a straight multiline string - to avoid quoting issues
-  echo
-  echo "GETTING temporary password"
-  sudo grep 'temporary password' /var/log/mysqld.log
-  MYSQL_TEMP_PWD=$(sudo grep 'temporary password' /var/log/mysqld.log | awk '{print $13}')
-  echo "temp root password: ${MYSQL_TEMP_PWD}"
   echo
   echo "GETTING assigned root password"
   MYSQL_ROOT_PWD=$(<${MYSQL_PW_FILE})
@@ -71,6 +69,7 @@ expect {
   }
   "Change the password for root ? \(Press y|Y for Yes, any other key for No) :" {
     send "n\r"
+  }
 }
 
 expect "Remove anonymous users? \(Press y|Y for Yes, any other key for No) :"
@@ -189,6 +188,9 @@ echo "ROOT password assigned in mysql_pw.txt DID NOT WORK."
 #send "status=`echo $?\r`"
 
 echo "CHECKING if mysql_secure_installation has already been run..."
+echo
+echo "temp root password: ${MYSQL_TEMP_PWD}"
+
 if expect -f '-' <<HERE
 set timeout 5
 spawn mysql -u root -p --connect-expired-password --execute "quit"
