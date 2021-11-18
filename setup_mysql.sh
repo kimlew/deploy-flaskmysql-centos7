@@ -20,30 +20,31 @@ MYSQL_PW_FILE='mysql_pw.txt'
 if [ -f "$MYSQL_PW_FILE" ]; then
   MYSQL_ROOT_PWD=$(cat "$MYSQL_PW_FILE")
 else
-  echo "${MYSQL_PW_FILE} doesn't exist"
+  echo "${MYSQL_PW_FILE} doesn't exist. Create it and add root password."
   exit 1
 fi
 
-# From /var/log/mysqld.log, look for phrase for root@localhost:<space>
-# & from there, get all characters up to new line character & save as
-# MYSQL_TEMP_PWD. Note: This is 13 chars in from 'temporary password'.
-# Temporary password is created with MySQL installation in /var/log/mysqld.log.
-# Assign to variable to use if mysql_secure_installation has NOT been run yet."
-echo
-echo "GETTING temporary password"
-sudo grep 'temporary password' /var/log/mysqld.log
-MYSQL_TEMP_PWD=$(sudo grep 'temporary password' /var/log/mysqld.log | awk '{print $13}')
-echo "temp root password: ${MYSQL_TEMP_PWD}"
-echo
-echo "GETTING assigned root password"
-MYSQL_ROOT_PWD=$(<${MYSQL_PW_FILE})
-echo "new root password: ${MYSQL_ROOT_PWD}"
-echo
-
 run_mysql_secure_installation() {
+  # From /var/log/mysqld.log, look for phrase for root@localhost:<space>
+  # & from there, get all characters up to new line character & save as
+  # MYSQL_TEMP_PWD. Note: This is 13 chars in from 'temporary password'.
+  # Temporary password is created with MySQL installation in /var/log/mysqld.log.
+  # Assign to variable to use if mysql_secure_installation has NOT been run yet."
+  # -- expect part --
   # -f flag means to use a file & - means to use standard input as the file
   # -c flag prefaces a command to be executed before any in the script
   # Use HERE document vs. as a straight multiline string - to avoid quoting issues
+  echo
+  echo "GETTING temporary password"
+  sudo grep 'temporary password' /var/log/mysqld.log
+  MYSQL_TEMP_PWD=$(sudo grep 'temporary password' /var/log/mysqld.log | awk '{print $13}')
+  echo "temp root password: ${MYSQL_TEMP_PWD}"
+  echo
+  echo "GETTING assigned root password"
+  MYSQL_ROOT_PWD=$(<${MYSQL_PW_FILE})
+  echo "new root password: ${MYSQL_ROOT_PWD}"
+  echo
+
 SECURE_MYSQL=$(expect -f '-' <<HERE
 set timeout 10
 spawn mysql_secure_installation
@@ -87,8 +88,7 @@ expect eof
 HERE
 )
 echo "$SECURE_MYSQL"
-echo "DONE."
-# echo "mysql_secure_installation has been run & root password has been assigned for MySQL."
+echo "RAN mysql_secure_installation & root password has been assigned for MySQL."
 echo
 }
 
@@ -126,12 +126,11 @@ HERE
     run_mysql_secure_installation
   fi
 else
-  # MySQL is NOT installed, i.e., you haven't set up MySQL yet, nor changed
-  # temporary password - so install MySQL. Then call run_mysql_secure_installation().
+  # MySQL is NOT installed yet and you have not yet changed the temporary
+  # password so install MySQL. Then call run_mysql_secure_installation().
   # B4: [ "$(sudo yum repolist enabled | grep "mysql.*-community.*")" == '' ] || ! command -v mysqld; then
-
-  echo "MySQL is NOT installed yet. GETTING and VERIFYING"
-  echo "MySQL mysql80-community-release-el7-4 and installing MySQL."
+  echo
+  echo "MySQL is NOT installed yet. GETTING and VERIFYING MySQL mysql80-community-release-el7-4."
 
   # CHECK for MySQL File Download.
   # Create a new file with the extension .rpm.md5 with contents of the copied
@@ -146,24 +145,30 @@ else
     echo "8b55d5fc443660fab90f9dc328a4d9ad mysql80-community-release-el7-4.noarch.rpm" > mysql80-community-release-el7-4.noarch.rpm.md5
   fi
 
+  # CHECK if retrieved MySQL package file passes md5sum check.
+  # CAN ALSO: Use GnuPG signatures to verify the integrity of downloaded packages.
   if ! md5sum --check mysql80-community-release-el7-4.noarch.rpm.md5; then
     # Not verifiable MySQL file. Show error here & exit from the script.
     echo "FAILED md5sum check for the MySQL file. Exiting the script."
     exit 1
   fi
-  # OR use GnuPG signatures to verify the integrity of the packages you download.
-  # At this point: Passed md5sum check for the MySQL file.
+  echo "GOT & VERIFIED MySQL package."
 
-  # Note: rpm might fail if MySQL is already installed.
-  # TODO: Add a check here for if mysql80-community-release is already installed.
-  # man rpm & Google: How to tell if an rpm package already installed.
-  # sudo rpm -ivh mysql80-community-release-el7-4.noarch.rpm || true
+  # CHECK if you can successfullly query mysql80-community-release package, i.e.,
+  # 0 exit code - if the package is installed, which here means MySQL package is
+  # already install & rpm command might FAIL. So for a clean install, erase the
+  # package & then install it.
+  # B4: sudo rpm -ivh mysql80-community-release-el7-4.noarch.rpm || true
+  echo
   MYSQL_PKG="mysql80-community-release-el7-4.noarch.rpm"
-  rpm -q "${MYSQL_PKG}"
-  if [ $? = 1 ]; then
+  if rpm -q "${MYSQL_PKG}"; then
+  # if [ $? = 0 ]; then
+    # echo "NOW erasing previously installed MySQL package to ensure the MySQL installation is clean."
     rpm -e "${MYSQL_PKG}"
-    sudo rpm -ivh "${MYSQL_PKG}"
   fi
+  echo
+  echo "NOW installing MySQL package & MySQL Server."
+  sudo rpm -ivh "${MYSQL_PKG}"
   sudo yum repolist enabled | grep "mysql.*-community.*"
   sudo yum install mysql-server -y
   echo "DONE installing MySQL."
@@ -203,21 +208,13 @@ then
   run_mysql_secure_installation
 fi
 
-echo "NOW start MySQL with given root password..."
-# RUN_MYSQL=$(expect -f '-'  <<HERE
-# set timeout 5
-# spawn mysql -u root -p
-# expect "Enter password:"
-# send "${MYSQL_ROOT_PWD}\r"
-# expect eof
-# HERE
-# )
-# echo "$RUN_MYSQL"
-
-# Final Test: Manually uninstall MySQL on this VM to test entire script.
+# Test Case 1: Test entire script by manually uninstalling MySQL on this VM
+# with these commands & re-run script.
+# sudo yum erase mysql
 # sudo yum erase mysql-community-server -y
 # sudo rm -rf /var/lib/mysql
 # sudo rm /var/log/mysqld.log
 
-# FINAL Final Test: Destroy this CentOS 7 VM with vagrant destroy & create a
-# new one with vagrant up. Re-scp this file & re-run on clean VM.
+# Test Case 2: Test entire script by destroying this CentOS 7 VM with:
+# vagrant destroy. Then create a new VM with: vagrant up. Re-scp this file &
+# re-run script on clean VM.
