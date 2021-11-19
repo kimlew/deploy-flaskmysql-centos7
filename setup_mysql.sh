@@ -67,7 +67,7 @@ expect {
   "Do you wish to continue with the password provided?\(Press y|Y for Yes, any other key for No) :" {
     send "y\r"
   }
-  "Change the password for root ? \(Press y|Y for Yes, any other key for No) :" {
+  "Change the password for root ? \(\(Press y|Y for Yes, any other key for No) :" {
     send "n\r"
   }
 }
