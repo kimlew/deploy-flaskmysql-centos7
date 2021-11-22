@@ -24,9 +24,6 @@ else
   exit 1
 fi
 
-sudo grep 'temporary password' /var/log/mysqld.log
-MYSQL_TEMP_PWD=$(sudo grep 'temporary password' /var/log/mysqld.log | awk '{print $13}')
-
 run_mysql_secure_installation() {
   # From /var/log/mysqld.log, look for phrase for root@localhost:<space>
   # & from there, get all characters up to new line character & save as
@@ -37,6 +34,10 @@ run_mysql_secure_installation() {
   # -f flag means to use a file & - means to use standard input as the file
   # -c flag prefaces a command to be executed before any in the script
   # Use HERE document vs. as a straight multiline string - to avoid quoting issues
+  echo
+  echo "GETTING temporary password"
+  sudo grep 'temporary password' /var/log/mysqld.log
+  MYSQL_TEMP_PWD=$(sudo grep 'temporary password' /var/log/mysqld.log | awk '{print $13}')
   echo
   echo "GETTING assigned root password"
   MYSQL_ROOT_PWD=$(<${MYSQL_PW_FILE})
@@ -95,8 +96,8 @@ echo
 # changed temporary password - so NO need to install MySQL.
 # Next: Check if mysql_secure_installation has been run.
 # -v means tell if pattern not found
-if ! [ "$(sudo yum repolist enabled | grep "mysql.*-community.*")" == '' ] || command -v mysqld; then
-  echo "MySQL is already installed."
+if [ "$(sudo yum repolist enabled | grep "mysql.*-community.*")" != '' ] && command -v mysqld; then
+  echo "MySQL package repos AND MySQL server are already installed."
   echo
 
   # Case 1: CHECK if assignedroot password works with MySQL.
@@ -120,8 +121,10 @@ HERE
     exit
   else
     echo
-    echo "RUNNING the program, mysql_secure_installation..."
+    echo "NO assigned ROOT password yet. RUNNING mysql_secure_installation..."
     echo
+    sudo grep 'temporary password' /var/log/mysqld.log
+    MYSQL_TEMP_PWD=$(sudo grep 'temporary password' /var/log/mysqld.log | awk '{print $13}')
     run_mysql_secure_installation
   fi
 else
@@ -160,14 +163,17 @@ else
   # B4: sudo rpm -ivh mysql80-community-release-el7-4.noarch.rpm || true
   echo
   MYSQL_PKG="mysql80-community-release-el7-4.noarch.rpm"
-  if rpm -q "${MYSQL_PKG}"; then
+  if rpm -q "${MYSQL_PKG%.noarch.rpm}"; then
   # if [ $? = 0 ]; then
     # echo "NOW erasing previously installed MySQL package to ensure the MySQL installation is clean."
-    rpm -e "${MYSQL_PKG}"
+    sudo rpm -e "${MYSQL_PKG%.noarch.rpm}"
   fi
   echo
   echo "NOW installing MySQL package & MySQL Server."
   sudo rpm -ivh "${MYSQL_PKG}"
+
+  # WHY DOES SCRIPT EXIT HERE IF THERE IS NOTHING TO INSTALL?
+
   sudo yum repolist enabled | grep "mysql.*-community.*"
   sudo yum install mysql-server -y
   echo "DONE installing MySQL."
@@ -189,6 +195,8 @@ echo "ROOT password assigned in mysql_pw.txt DID NOT WORK."
 
 echo "CHECKING if mysql_secure_installation has already been run..."
 echo
+sudo grep 'temporary password' /var/log/mysqld.log
+MYSQL_TEMP_PWD=$(sudo grep 'temporary password' /var/log/mysqld.log | awk '{print $13}')
 echo "temp root password: ${MYSQL_TEMP_PWD}"
 
 if expect -f '-' <<HERE
@@ -205,7 +213,7 @@ then
   # Confirmed that temporary password still works. Use temporary password for root
   # to run the program, mysql_secure_installation & to change the root password.
 
-  echo "RUNNING the program, mysql_secure_installation..."
+  echo "RUNNING the program, mysql_secure_installation with temporary password..."
   echo
   run_mysql_secure_installation
 fi
@@ -213,7 +221,7 @@ fi
 # Test Case 1: Test entire script by manually uninstalling MySQL on this VM
 # with these commands & re-run script.
 # sudo yum erase mysql
-# sudo yum erase mysql-community-server -y
+# sudo yum erase mysql-community-server
 # sudo rm -rf /var/lib/mysql
 # sudo rm /var/log/mysqld.log
 
