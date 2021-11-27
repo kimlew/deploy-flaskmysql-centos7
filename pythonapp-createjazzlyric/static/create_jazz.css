@@ -1,0 +1,70 @@
+body {
+  font-family:      Verdana, Geneva, Arial, sans-serif;
+  font-size:        medium;
+  background-color: #A2DED3; /* Seafoam blue-green. */
+  margin-top:       5%;
+  margin-bottom:    5%;
+  margin-left:      10%;
+  margin-right:     10%;
+  border:           1px dotted gray;
+  padding:          10px 10px 10px 10px;
+}
+h2 {
+  font-size:        140%;
+  color:            #004c54; /* Darker Peacock blue */
+}
+
+form {
+  width:            300px;
+}
+
+table {
+  margin-left:      20px;
+  margin-right:     20px;
+  caption-side:     bottom;
+  border-collapse:  collapse;
+}
+td, th {
+  padding:          5px;
+  text-align:       left;
+  white-space:      nowrap;
+}
+
+td.usermsg {
+  color: #D8000C; /* Strong red */
+  font-size: 80%;
+}
+
+/*** Tables ***/
+table {
+  font-size:          1em;
+  background-color:   #fafcff;              /* Seafoam blue-green. */
+  border:             1px solid #909090;    /* Medium grey. */
+  padding:            5px 5px 2px;
+  border-collapse:    collapse;
+}
+
+td, th {
+  border:             thin dotted gray;
+}
+
+/*** Inputs ***/
+input[type=text] {
+  font-size:        115%;
+  width:            3em;
+  text-align:       center
+}
+input[type=submit] {
+  font-size:        125%;
+}
+
+a {
+  text-decoration:  underline;;
+  font-weight:      200;
+}
+a:hover {
+  text-decoration:  underline;
+}
+a img {
+  border:           0;
+}

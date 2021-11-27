@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block body %}
+
+<h2>{{ the_lyric_params['the_page_title'] }}</h2>
+
+<table>
+    <tr><td><h3>&#127926;<i>{{ the_lyric_params['the_lyric'] }}</i>&#127926;</h3></td></tr>
+</table>
+
+<p>Vowel 1: {{ the_lyric_params['the_vowel1'] }}</p>
+<p>Vowel 2: {{ the_lyric_params['the_vowel2'] }}</p>
+<p>Number of Vowel 2s: {{ the_lyric_params['the_vowel2_amount'] }}</p>
+<p>Consonant: {{ the_lyric_params['the_consonant'] }}</p>
+
+<p>The number of vowels in your jazz lyric is: {{ the_lyric_params['the_vowel_count'] }} </p>
+
+<p><a href="/">Create a Jazz Lyric</a></p>
+<p><a href="{{ url_for('show_song') }}">See Jazz Song</a></p>
+
+
+{% endblock %}
