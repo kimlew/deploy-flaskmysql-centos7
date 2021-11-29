@@ -17,9 +17,12 @@
   vagrant ssh
   ```
 
-5. On the VM, run: `bash -x setup_machine.sh`
+5. On the VM, run:<br>
+  `bash -x setup_machine.sh`<br>
+  `bash -x setup_mysql.sh`
 
-6. Verify versions shown in the Terminal output are correct on the virtual machine/deployment machine.
+6. For `setup_machine.sh`, verify versions shown in the Terminal output are correct on the virtual machine/deployment machine.<br>
+  For `setup_mysql.sh`, verify there are no error messages.
 
 7. On the VM, run: `flask run`
 
