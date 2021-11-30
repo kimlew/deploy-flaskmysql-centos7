@@ -40,7 +40,7 @@ run_mysql_secure_installation() {
   echo "new root password: ${MYSQL_ROOT_PWD}"
   echo
 
-SECURE_MYSQL=$(expect -f '-' <<HERE
+expect -f '-' <<HERE
 set timeout 10
 spawn mysql_secure_installation
 
@@ -82,8 +82,7 @@ expect "Reload privilege tables now? \(Press y|Y for Yes, any other key for No) 
 send "y\r"
 expect eof
 HERE
-)
-echo "$SECURE_MYSQL"
+
 echo "RAN mysql_secure_installation & root password has been assigned for MySQL."
 echo
 }
