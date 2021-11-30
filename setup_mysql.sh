@@ -95,7 +95,7 @@ if [ "$(sudo yum repolist enabled | grep "mysql.*-community.*")" != '' ] && comm
   echo "MySQL package repos AND MySQL server are already installed."
   echo
 
-  # Case 1: CHECK if assignedroot password works with MySQL.
+  # Case 1: CHECK if assigned root password works with MySQL.
   # If it root password exists, exit with 0 & skip rest of code since it means
   # MySQL is installed AND mysql_secure_installation has already been run.
   # Case 2: else - Only the temporary password exists so far which means MySQL
@@ -121,8 +121,8 @@ HERE
     run_mysql_secure_installation
   fi
 else
-  # MySQL is NOT installed yet - so you have not yet changed the temporary
-  # password, so install MySQL. Then call run_mysql_secure_installation.
+  # MySQL is NOT installed yet so there is no temporary password yet. Get,
+  # verify & install MySQL package.
   echo
   echo "MySQL is NOT installed yet. GETTING and VERIFYING MySQL mysql80-community-release-el7-4."
 
