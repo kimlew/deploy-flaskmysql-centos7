@@ -3,7 +3,11 @@
 # This script helps install MySQL on a machine with CentOS 7.
 # Assumes you already did: vagrant up & vagrant ssh
 
-set -e # To exit immediately if a command exits with a non-zero status.
+# Options to immediately exit:
+# -e - the command that gives a non-zero status
+# -o pipefail - the whole pipeline when 1st command has non-zero status code
+set -eo pipefail
+
 sudo yum update -y
 sudo yum install nano -y
 sudo yum install wget -y
