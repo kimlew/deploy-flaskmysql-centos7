@@ -181,7 +181,7 @@ sudo systemctl status mysqld
 if ! MYSQL_TEMP_PWD=$(sudo grep 'temporary password' /var/log/mysqld.log | awk '{print $13}'); then
   echo
   echo "Error: The file, /var/log/mysqld.log which is installed with MySQL does"
-  even "not have the temporary password, even though MySQL is installed. You"
+  echo "not have the temporary password, even though MySQL is installed. You"
   echo "must manually run these 3 commands and then re-run this script:"
   echo "sudo yum erase mysql"
   echo "sudo yum erase mysql-community-server"
@@ -215,7 +215,7 @@ then
   run_mysql_secure_installation
 fi
 
-# Test Case 1: Manually uninstalling MySQL client, db files,  MySQL server, &
+# Test Case 1: Manually uninstall MySQL client, db files,  MySQL server, &
 # server-related files with these commands & re-run script.
 # 1. sudo yum erase mysql  # Removes the client.
 # 2. sudo rm -rf /var/lib/mysql  # Deletes the database files.*
