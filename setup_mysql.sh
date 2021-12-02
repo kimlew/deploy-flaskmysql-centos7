@@ -215,9 +215,10 @@ fi
 #  sudo yum erase mysql  # Removes the client.
 #  sudo rm -rf /var/lib/mysql  # Deletes the database files.*
 #  sudo yum erase mysql-community-server  # Deletes server config files.
-#  sudo rm /var/log/mysqld.log  # Data directory related to mysqld/the server.
+#  sudo rm /var/log/mysqld.log
 
-# *Note: Database files store ALL .passwords including the temp root one &
+# *Note: # Data directory related to mysqld/the server.
+# Database files store ALL .passwords including the temp root one &
 # assigned root one. After the the MySQL package installation, you can't log in
 # to MySQL with the temp root password which is in the /var/log/mysqld.log file
 # and also in the database b/c you don't have access to either. So this script
