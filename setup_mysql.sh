@@ -13,12 +13,12 @@ sudo yum install nano -y
 sudo yum install wget -y
 sudo yum install expect -y
 
+# Note: This script assumes mysql_pw.txt already exists.
 # MAKE SURE you have already created mysql_pw.txt outside of this script & put
 # in the password you want for root.
-# This script assumes mysql_pw.txt already exists.
-# BEST TO Put MYSQL_ROOT_PWD in a file vs. in an environment variable so it is
-# on the filesystem & can be reuses for other purposes. You can't reuse if done
-# a diff way, i.e., add a user prompt at front of script for password.
+# Note: Put MYSQL_ROOT_PWD in a file vs. in an environment variable so it is
+# on the filesystem & can be reused for other purposes. You can't reuse it if
+# you do a diff way, e.g., you add a user prompt for password at start of script.
 
 MYSQL_PW_FILE='mysql_pw.txt'
 if [ -f "$MYSQL_PW_FILE" ]; then
@@ -27,7 +27,7 @@ else
   echo "${MYSQL_PW_FILE} doesn't exist. Create it and add root password."
   exit 1
 fi
-
+#=== FUNCTION ==================================================================
 run_mysql_secure_installation() {
   # Temporary password is created with MySQL installation in /var/log/mysqld.log.
   # Assign to variable to use if mysql_secure_installation has NOT been run yet."
@@ -91,42 +91,14 @@ echo "RAN mysql_secure_installation & root password has been assigned for MySQL.
 echo
 }
 
-# Check if MySQL IS installed, i.e., you already set up MySQL yet & already
-# changed temporary password - so NO need to install MySQL.
-# Next: Check if mysql_secure_installation has been run.
-# -v means tell if pattern not found
+#-------------------------------------------------------------------------------
+# CHECKING for MySQL - GET, VERIFY & INSTALL MySQL package
+#-------------------------------------------------------------------------------
 if [ "$(sudo yum repolist enabled | grep "mysql.*-community.*")" != '' ] && command -v mysqld; then
   echo "MySQL package repos AND MySQL server are already installed."
   echo
-
-  # Case 1: CHECK if assigned root password works with MySQL.
-  # If it root password exists, exit with 0 & skip rest of code since it means
-  # MySQL is installed AND mysql_secure_installation has already been run.
-  # Case 2: else - Only the temporary password exists so far which means MySQL
-  # is installed BUT mysql_secure_installation has NOT been run yet, so run it.
-  echo "TEST if root password runs MySQL, i.e., mysql_secure_installation was already run."
-  echo
-  if expect -f '-' <<HERE
-  set timeout 5
-  spawn mysql -u root -p --execute "quit"
-  expect "Enter password:"
-  send "$MYSQL_ROOT_PWD\r"
-  expect eof
-  exit [lindex [wait] 3]
-HERE
-  then
-    echo
-    echo "ROOT password assigned in mysql_pw.txt WORKED! MySQL is installed & mysql_secure_installation was run."
-    exit
-  else
-    echo
-    echo "NO assigned ROOT password yet. RUNNING mysql_secure_installation..."
-    echo
-    run_mysql_secure_installation
-  fi
 else
-  # MySQL is NOT installed yet so there is no temporary password yet. Get,
-  # verify & install MySQL package.
+  # MySQL is NOT installed Get, verify & install MySQL package.
   echo
   echo "MySQL is NOT installed yet. GETTING and VERIFYING MySQL mysql80-community-release-el7-4."
 
@@ -155,6 +127,7 @@ else
   # CHECK if you can successfully query mysql80-community-release package, i.e.,
   # 0 exit code - means package is already installed. BUT rpm command might FAIL.
   # So for a clean install, erase the package & then install it.
+  # rpm -v means pattern was not found
   echo
   MYSQL_PKG="mysql80-community-release-el7-4.noarch.rpm"
   if rpm -q "${MYSQL_PKG%.noarch.rpm}"; then
@@ -173,29 +146,54 @@ fi
 sudo systemctl start mysqld.service
 sudo systemctl status mysqld
 
-# CHECK CASE: At this point, MySQL is installed, mysql_secure_installation has
-# NOT been run, BUT mysqld.log file has lost temporary password.
+#-------------------------------------------------------------------------------
+# RUNNING mysql_secure_installation
+#-------------------------------------------------------------------------------
+# CHECK if mysql_secure_installation was already run & root password assigned.
+echo "TEST if root password runs MySQL, i.e., mysql_secure_installation was already run."
+echo
+if expect -f '-' <<HERE
+set timeout 5
+spawn mysql -u root -p --execute "quit"
+expect "Enter password:"
+send "$MYSQL_ROOT_PWD\r"
+expect eof
+exit [lindex [wait] 3]
+HERE
+then
+  echo
+  echo "ROOT password assigned in mysql_pw.txt WORKED! MySQL is installed & mysql_secure_installation was run."
+  exit
+fi
+
+# CHECK ODD CASE: At this point, MySQL is installed, mysql_secure_installation
+# has NOT been run, BUT mysqld.log file has lost temporary password. In this
+# odd case, /var/log/mysqld.log ONLY starts at the current point & loses all of
+# the past logged messages of actions.
 # Note: Without the if, when this line is run and fails, you are exited from script.
 # MYSQL_TEMP_PWD=$(sudo grep 'temporary password' /var/log/mysqld.log | awk '{print $13}')
-
+echo
 if ! MYSQL_TEMP_PWD=$(sudo grep 'temporary password' /var/log/mysqld.log | awk '{print $13}'); then
   echo
   echo "Error: The file, /var/log/mysqld.log which is installed with MySQL does"
-  echo "not have the temporary password, even though MySQL is installed. You"
-  echo "must manually run these 3 commands and then re-run this script:"
-  echo "sudo yum erase mysql"
-  echo "sudo yum erase mysql-community-server"
-  echo "sudo rm -rf /var/lib/mysql"
-  echo
+  echo "not have the temporary password, even though MySQL package is installed."
+  echo "You must manually run these 3 commands:"
+  echo " sudo yum erase mysql"
+  echo " sudo yum erase mysql-community-server"
+  echo " sudo rm -rf /var/lib/mysql"
+  echo "Then re-run this script."
   exit 1
 fi
 
-# RUN MySQL w temporary password.
-# Note: Tested bad result case with "boo" vs. send "${MYSQL_TEMP_PWD}\r"
+# CHECK if temporary password can be used to RUN MySQL.
+# Note: Tested BAD result case with "boo" vs. send "${MYSQL_TEMP_PWD}\r"
+# expect part - confirms that temporary password still works. Use temporary
+# password for root to run the program, mysql_secure_installation & to change
+# the root password - which the function, run_mysql_secure_installation does.
 echo
+echo "NO assigned ROOT password yet."
 echo "CHECKING if temp root password ${MYSQL_TEMP_PWD} works with MySQL..."
 echo
-
 if expect -f '-' <<HERE
 set timeout 5
 spawn mysql -u root -p --connect-expired-password --execute "quit"
@@ -206,28 +204,26 @@ exit [lindex [wait] 3]
 HERE
 then
   echo
-  # expect part above - confirms that temporary password still works. Use
-  # temporary password for root to run the program, mysql_secure_installation &
-  # to change the root password.
   echo "Temporary password exists so you have NOT run mysql_secure_installation yet."
   echo "RUNNING mysql_secure_installation program with temp root password..."
   echo
   run_mysql_secure_installation
 fi
 
-# Test Case 1: Manually uninstall MySQL client, db files,  MySQL server, &
-# server-related files with these commands & re-run script.
-# 1. sudo yum erase mysql  # Removes the client.
-# 2. sudo rm -rf /var/lib/mysql  # Deletes the database files.*
-# 3. sudo yum erase mysql-community-server  # Deletes server config files.
-# 4. sudo rm /var/log/mysqld.log  # Data directory related to mysqld/the server.
+# TEST CASE 1: Manually uninstall MySQL client, db files,  MySQL server, &
+# server-related files with these commands & re-run script. Use these 4 commands:
+#  sudo yum erase mysql  # Removes the client.
+#  sudo rm -rf /var/lib/mysql  # Deletes the database files.*
+#  sudo yum erase mysql-community-server  # Deletes server config files.
+#  sudo rm /var/log/mysqld.log  # Data directory related to mysqld/the server.
 
-# *Note: database files store ALL .passwords including the temp root on e &
-# assigned root one which you can't check when you sign into the database after
-# 1st MySQL installation, which is why I'm doing all this. MySQL DOES put the
-# temp password in this log file BUT only when it detects there is NO
-# assigned root password. In my case, the .log only starts at the current
-# point & loses all of the past logged messages of actions.
+# *Note: Database files store ALL .passwords including the temp root one &
+# assigned root one. After the the MySQL package installation, you can't log in
+# to MySQL with the temp root password which is in the /var/log/mysqld.log file
+# and also in the database b/c you don't have access to either. So this script
+# Note: MySQL DOES put the temp password in the /var/log/mysqld.log BUT only
+# when it detects there is NO assigned root password.
 
-# Test Case 2: Destroy this CentOS 7 VM with: vagrant destroy. Then create a
-# new VM with: vagrant up. Re-scp this file & re-run script on clean VM.
+# TEST CASE 2: Destroy this CentOS 7 VM with: vagrant destroy.
+# Then create a new VM with: vagrant up.
+# Then scp this file again & re-run script on the clean VM.
