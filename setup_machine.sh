@@ -1,9 +1,10 @@
 #! /bin/bash
 
-# This shell script is to deploy on a Vagrant VM CentOS 7.
-# Will modify to use later to deploy on AWS.
+# This shell script is to set up a Vagrant VM CentOS 7 with required software
+# for the Python Flask web app, create_jazz_lyric.
+# Later: Modify it to deploy the app onto AWS.
 
-# help set to see these flags:
+# Type: help set - to see meanings of these flags:
 # -e  Exit immediately if a command exits with a non-zero status.
 # -x  Print commands and their arguments as they are executed.
 

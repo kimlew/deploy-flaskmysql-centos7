@@ -51,7 +51,8 @@ Vagrant.configure("2") do |config|
   # Example for VirtualBox:
   #
   config.vm.provider "virtualbox" do |vb|
-  # Display the VirtualBox GUI when booting the machine
+    vb.name = "centos_7_create_jazz"
+    # Display the VirtualBox GUI when booting the machine
     vb.gui = true # Add this line to solve error w signal 10.
   #
   # Customize the amount of memory on the VM:
