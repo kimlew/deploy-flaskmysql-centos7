@@ -1,7 +1,13 @@
 #! /bin/bash
 
-# This shell script is to set up a Vagrant VM CentOS 7 with required software
-# for the Python Flask web app, create_jazz_lyric.
+# Important: Make sure you have run setup_mysql.sh BEFORE running this script, setup_machine.sh.
+
+# Script name: setup_machine.sh
+# Description: This script sets up the server to run the Python Flask web app,
+# create-jazz-lyric.
+# Note: .flaskenv created near end of this script.
+# Author: Kim Lew
+# Currently: This shell script sets up a Vagrant VM CentOS 7 with required software.
 # Later: Modify it to deploy the app onto AWS.
 
 # Type: help set - to see meanings of these flags:
@@ -26,8 +32,6 @@ sudo rm Python-3.9.7.tgz*
 sudo yum install python3-pip -y
 sudo pip3 install pipenv
 
-# TODO: Run setup_mysql.sh to install MySQL.
-
 echo
 echo "YUM INSTALLED VERSIONS:"
 python3.9 --version
@@ -40,9 +44,20 @@ cd pythonapp-createjazzlyric
 # python3.9 -m venv .venv
 pipenv install
 
+# FLASK_ENV - by default, is production, which doesn't do anything noticeable.
+# development - see reloader starts working & your app is put into debug mode
+# Default port for Flask here is 5000. So if I don't set to anything else, IS 5000.
+# FLASK_RUN_PORT=8084
 cat > .flaskenv <<EOF
   FLASK_APP=create_jazz_lyric
   FLASK_RUN_HOST=0.0.0.0
 EOF
 
-pipenv shell
+if [ -f '../mysql_pw.txt' ]; then
+  {
+    echo 'DB_HOST=localhost'
+    echo 'DB_USER=root'
+    echo "DB_PASSWORD=$(cat ../mysql_pw.txt)"
+    echo 'DB_NAME=lyric_db'
+  } > .env
+fi
