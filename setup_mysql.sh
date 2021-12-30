@@ -1,7 +1,13 @@
 #! /usr/bin/env bash
 
-# This script helps install MySQL on a machine with CentOS 7.
-# Assumes you already did: vagrant up & vagrant ssh
+# Note: This script assumes you already ran: vagrant up & vagrant ssh
+# Important: Make sure you run this script, setup_mysql.sh BEFORE you run the
+# script, setup_machine.sh.
+
+# Script name: setup_machine.sh
+# Description: This script installS MySQL (on a CentOS 7machine) & creates
+# the database & table needed for the Python Flask app, create-jazz-lyric.
+# Author: Kim Lew
 
 # Options to immediately exit:
 # -e - the command that gives a non-zero status
@@ -149,27 +155,11 @@ sudo systemctl status mysqld
 #-------------------------------------------------------------------------------
 # RUNNING mysql_secure_installation
 #-------------------------------------------------------------------------------
-# CHECK if mysql_secure_installation was already run & root password assigned.
-echo "TEST if root password runs MySQL, i.e., mysql_secure_installation was already run."
-echo
-if expect -f '-' <<HERE
-set timeout 5
-spawn mysql -u root -p --execute "quit"
-expect "Enter password:"
-send "$MYSQL_ROOT_PWD\r"
-expect eof
-exit [lindex [wait] 3]
-HERE
-then
-  echo
-  echo "ROOT password assigned in mysql_pw.txt WORKED! MySQL is installed & mysql_secure_installation was run."
-  exit
-fi
-
-# CHECK ODD CASE: At this point, MySQL is installed, mysql_secure_installation
-# has NOT been run, BUT mysqld.log file has lost temporary password. In this
-# odd case, /var/log/mysqld.log ONLY starts at the current point & loses all of
-# the past logged messages of actions.
+# At this point, MySQL is installed.
+# CHECK ODD CASE: Where mysql_secure_installation might NOT have been run yet,
+# AND mysqld.log file has lost temporary password. In this odd case,
+# /var/log/mysqld.log ONLY starts at the current point & loses all of the past
+# logged messages of actions.
 # Note: Without the if, when this line is run and fails, you are exited from script.
 # MYSQL_TEMP_PWD=$(sudo grep 'temporary password' /var/log/mysqld.log | awk '{print $13}')
 echo
@@ -209,6 +199,49 @@ then
   echo
   run_mysql_secure_installation
 fi
+
+# CHECK if mysql_secure_installation was already run & root password assigned.
+echo "TEST if root password runs MySQL, i.e., mysql_secure_installation was already run."
+echo
+if expect -f '-' <<HERE
+set timeout 5
+spawn mysql -u root -p --execute "quit"
+expect "Enter password:"
+send "$MYSQL_ROOT_PWD\r"
+expect eof
+exit [lindex [wait] 3]
+HERE
+then
+  echo
+  echo "ROOT password assigned in mysql_pw.txt WORKED! MySQL is installed & mysql_secure_installation was run."
+  # exit 0
+fi
+
+# Run MySQL with root password and create database & table.
+# READ: command line option to run a file & then exit out of mysql
+
+# https://stackoverflow.com/questions/2428416/how-to-create-a-database-from-shell-command
+# -e is the short-form for --execute=statement & directly from command line
+# Find command line options here dev.mysql.com/doc/refman/8.0/en/mysql-command-options.html
+# https://www.tutorialspoint.com/run-sql-file-in-mysql-database-from-terminal
+# mysql -u yourUserName -p yourDatabaseName < yourFileName.sql
+# mysql -u root -p < create_db_table.sql
+# DID NOT WORK: spawn mysql -u root -f "create_db_table.sql" -p
+# spawn mysql -u root -e "create database testdb;" -p
+#
+echo
+echo "Starting MySQL with root password and creating database & table..."
+cd pythonapp-createjazzlyric
+expect -f '-' <<HERE
+set timeout 5
+spawn /bin/sh -c "mysql -u root -p < \"create_mysql_db.sql\""
+expect "Enter password:"
+send "$MYSQL_ROOT_PWD\r"
+expect eof
+exit [lindex [wait] 3]
+HERE
+echo "Done creating database and table."
+# Note: At the end of this script, I am the directory, pythonapp-createjazzlyric.
 
 # TEST CASE 1: Manually uninstall MySQL client, db files,  MySQL server, &
 # server-related files with these commands & re-run script. Use these 4 commands:
