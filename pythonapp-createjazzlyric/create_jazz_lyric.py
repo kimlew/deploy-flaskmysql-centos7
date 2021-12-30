@@ -1,6 +1,7 @@
 ''' Python Flask app that lets you input values to make a jazz lyric. '''
 
 from datetime import datetime
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, g
 import mysql.connector
 from conn_vars_dict import conn_dict
@@ -8,6 +9,7 @@ from conn_vars_dict import conn_dict
 VOWEL_LIST = list('aeiouy')
 CONSONANT_LIST = list('bcdfghijklmnpqrstvwxz')
 
+load_dotenv()
 app = Flask(__name__)
 
 
