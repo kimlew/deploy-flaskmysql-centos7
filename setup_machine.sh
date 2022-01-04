@@ -18,17 +18,21 @@ set -e
 
 sudo yum update -y
 
-# # https://tecadmin.net/install-python-3-9-on-centos/
+# https://tecadmin.net/install-python-3-9-on-centos/
 sudo yum install gcc openssl-devel bzip2-devel libffi-devel zlib-devel -y
 sudo yum install wget -y
-wget https://www.python.org/ftp/python/3.9.7/Python-3.9.7.tgz
-tar xzf Python-3.9.7.tgz
-cd Python-3.9.7
-sudo ./configure --enable-optimizations
-sudo make altinstall
-cd ..
-sudo rm Python-3.9.7.tgz*
 
+# Check if Python aleady installed. If already there, skips next 7 lines.
+if [[ $(python3.9 --version) != "Python 3.9.7" ]]; then
+  echo "Getting and installing Python 3.9.7..."
+  wget https://www.python.org/ftp/python/3.9.7/Python-3.9.7.tgz
+  tar xzf Python-3.9.7.tgz
+  cd Python-3.9.7
+  sudo ./configure --enable-optimizations
+  sudo make altinstall
+  cd ..
+  sudo rm Python-3.9.7.tgz*
+fi
 sudo yum install python3-pip -y
 sudo pip3 install pipenv
 
@@ -53,7 +57,10 @@ cat > .flaskenv <<EOF
   FLASK_RUN_HOST=0.0.0.0
 EOF
 
-if [ -f '../mysql_pw.txt' ]; then
+if [ ! -f '../mysql_pw.txt' ]; then
+  echo "You must create mysql_pw.txt at the root level of the machine."
+  exit 1
+else
   {
     echo 'DB_HOST=localhost'
     echo 'DB_USER=root'
