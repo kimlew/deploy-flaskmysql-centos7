@@ -15,21 +15,12 @@ SRC_PROJ_DIR='/Users/kimlew/code/vagrant_vm_centos7_create_jazz/pythonapp-create
 DEST_REQ_FILES_AT_ROOT_DIR='/home/vagrant/'  # VM root directory.
 DEST_PROJ_DIR='/home/vagrant/pythonapp-createjazzlyric/'  # On VM.
 
-# --- Files needed at root directory on VM to set up VM. ---
+# --- Copy files needed at root directory on VM to set up VM. ---
 scp -F "${VAG_SSH_CFG}" "${SRC_REQ_FILES_DIR}"setup_mysql.sh vagrant@default:"${DEST_ROOT_DIR}"setup_mysql.sh
 scp -F "${VAG_SSH_CFG}" "${SRC_REQ_FILES_DIR}"setup_machine.sh vagrant@default:"${DEST_ROOT_DIR}"setup_machine.sh
 
-# --- Project files & folders for app, pythonapp-createjazzlyric ---
+# --- Copy project files & folders for app, pythonapp-createjazzlyric ---
 # Note: scp -r  recursively copies entire directory, pythonapp-createjazzlyric
-# which includes:
-# README.md
-# conn_vars_dict.py
-# create_mysql_db.sql
-# Pipfile
-# Pipfile.lock
-# create_jazz_lyric.py
-# static
-# templates
 scp -F "${VAG_SSH_CFG}" -r "${SRC_PROJ_DIR}". vagrant@default:"${DEST_PROJ_DIR}"
 
 
