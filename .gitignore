@@ -79,3 +79,4 @@ venv.bak/
 
 # Vagrant
 .vagrant/
+vagrant-ssh-config
