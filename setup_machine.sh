@@ -23,7 +23,7 @@ sudo yum install gcc openssl-devel bzip2-devel libffi-devel zlib-devel -y
 sudo yum install wget -y
 
 # Check if Python aleady installed. If already there, skips next 7 lines.
-if [[ $(python3.9 --version) != "Python 3.9.7" ]]; then
+if [[ "$(python3.9 --version)" != "Python 3.9.7" ]]; then
   echo "Getting and installing Python 3.9.7..."
   wget https://www.python.org/ftp/python/3.9.7/Python-3.9.7.tgz
   tar xzf Python-3.9.7.tgz
