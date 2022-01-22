@@ -1,6 +1,7 @@
 #! /bin/bash
 
-# Important: Make sure you have run setup_mysql.sh BEFORE running this script, setup_machine.sh.
+# Note: This script assumes you already ran: vagrant up & vagrant ssh
+# Important: Run setup_mysql.sh BEFORE running this script, setup_machine.sh.
 
 # Script name: setup_machine.sh
 # Description: This script sets up the server to run the Python Flask web app,
@@ -16,11 +17,20 @@
 
 set -e
 
+cd /home/vagrant
 sudo yum update -y
+
+# Check if nano already installed & install if not. "" or check exit code?
+if ! command -v nano &> /dev/null; then
+  sudo yum install nano -y
+fi
 
 # https://tecadmin.net/install-python-3-9-on-centos/
 sudo yum install gcc openssl-devel bzip2-devel libffi-devel zlib-devel -y
-sudo yum install wget -y
+# Check if wget already installed & install if not.
+if ! command -v wget &> /dev/null; then
+  sudo yum install wget -y
+fi
 
 # Check if Python aleady installed. If already there, skips next 7 lines.
 if [[ "$(python3.9 --version)" != "Python 3.9.7" ]]; then
@@ -47,6 +57,9 @@ echo
 cd pythonapp-createjazzlyric
 # python3.9 -m venv .venv
 pipenv install
+echo
+echo "IN project folder & INSTALLING Python dependencies..."
+echo
 
 # FLASK_ENV - by default, is production, which doesn't do anything noticeable.
 # development - see reloader starts working & your app is put into debug mode
@@ -58,6 +71,7 @@ cat > .flaskenv <<EOF
 EOF
 
 if [ ! -f '../mysql_pw.txt' ]; then
+  echo
   echo "You must create mysql_pw.txt at the root level of the machine."
   exit 1
 else
