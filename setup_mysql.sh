@@ -1,10 +1,12 @@
 #! /usr/bin/env bash
 
 # Note: This script assumes you already ran: vagrant up & vagrant ssh
-# Important: Make sure you run this script, setup_mysql.sh BEFORE you run the
-# script, setup_machine.sh.
+# IMPORTANT: In the VM, create a mysql_pw.txt file outside of this script & put
+# in the MySQL password you want for root BEFORE running this script.
+# ALSO: Run this script BEFORE you run setup_machine.sh, since setup_machine.sh
+# depends on things set up here first.
 
-# Script name: setup_machine.sh
+# Script name: setup_mysql.sh
 # Description: This script installS MySQL (on a CentOS 7machine) & creates
 # the database & table needed for the Python Flask app, create-jazz-lyric.
 # Author: Kim Lew
@@ -19,12 +21,10 @@ sudo yum install nano -y
 sudo yum install wget -y
 sudo yum install expect -y
 
-# Note: This script assumes mysql_pw.txt already exists.
-# MAKE SURE you have already created mysql_pw.txt outside of this script & put
-# in the password you want for root.
-# Note: Put MYSQL_ROOT_PWD in a file vs. in an environment variable so it is
-# on the filesystem & can be reused for other purposes. You can't reuse it if
-# you do a diff way, e.g., you add a user prompt for password at start of script.
+# Note: The root password is in the file, mysql_pw.txt vs. in an environment
+# variable, so it is on the filesystem & can be reused for other purposes. You
+# can't reuse it if done a diff way, e.g., you add a user prompt for password
+# at start of script.
 
 MYSQL_PW_FILE='mysql_pw.txt'
 if [ -f "$MYSQL_PW_FILE" ]; then
@@ -142,6 +142,7 @@ else
   fi
   echo
   echo "NOW installing MySQL package & MySQL Server."
+  sudo rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2022
   sudo rpm -ivh "${MYSQL_PKG}"
   sudo yum install mysql-server -y
   echo "DONE installing MySQL package with MySQL client & tools. DONE installing MySQL server."
@@ -241,7 +242,8 @@ expect eof
 exit [lindex [wait] 3]
 HERE
 echo "Done creating database and table."
-# Note: At the end of this script, I am the directory, pythonapp-createjazzlyric.
+echo
+# NOTE: At this point, you are in the directory, pythonapp-createjazzlyric.
 
 # TEST CASE 1: Manually uninstall MySQL client, db files,  MySQL server, &
 # server-related files with these commands & re-run script. Use these 4 commands:
