@@ -30,7 +30,8 @@ MYSQL_PW_FILE='mysql_pw.txt'
 if [ -f "$MYSQL_PW_FILE" ]; then
   MYSQL_ROOT_PWD=$(cat "$MYSQL_PW_FILE")
 else
-  echo "${MYSQL_PW_FILE} doesn't exist. Create it and add root password."
+  echo "${MYSQL_PW_FILE} is missing. Create it, add root password, save & re-run this script."
+  echo
   exit 1
 fi
 #=== FUNCTION ==================================================================
@@ -214,8 +215,8 @@ exit [lindex [wait] 3]
 HERE
 then
   echo
-  echo "ROOT password assigned in mysql_pw.txt WORKED! MySQL is installed & mysql_secure_installation was run."
-  # exit 0
+  echo "ROOT password assigned in ${MYSQL_ROOT_PWD} WORKED!"
+  echo "MySQL is installed & mysql_secure_installation was run."
 fi
 
 # Run MySQL with root password and create database & table.
@@ -229,7 +230,6 @@ fi
 # mysql -u root -p < create_db_table.sql
 # DID NOT WORK: spawn mysql -u root -f "create_db_table.sql" -p
 # spawn mysql -u root -e "create database testdb;" -p
-#
 echo
 echo "Starting MySQL with root password and creating database & table..."
 cd pythonapp-createjazzlyric
