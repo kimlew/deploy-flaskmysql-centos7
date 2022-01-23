@@ -20,9 +20,8 @@ scp -F "${VAG_SSH_CFG}" "${SRC_REQ_FILES_DIR}"setup_mysql.sh vagrant@default:"${
 scp -F "${VAG_SSH_CFG}" "${SRC_REQ_FILES_DIR}"setup_machine.sh vagrant@default:"${DEST_ROOT_DIR}"setup_machine.sh
 
 # --- Copy project files & folders for app, pythonapp-createjazzlyric ---
-# Note: scp -r  recursively copies entire directory, pythonapp-createjazzlyric
-scp -F "${VAG_SSH_CFG}" -r "${SRC_PROJ_DIR}". vagrant@default:"${DEST_PROJ_DIR}"
-
+# Note: scp -r recursively copies entire directory, pythonapp-createjazzlyric
+scp -F "${VAG_SSH_CFG}" -r "${SRC_PROJ_DIR}" vagrant@default:"${DEST_PROJ_DIR}"
 
 # --- Using .pem Key -----------------------------------------------------------
 # Note: Use .pem key to use SSH, plus AWS requires it.
