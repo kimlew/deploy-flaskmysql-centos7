@@ -1,40 +1,23 @@
 #! /usr/bin/env bash
 
-# Note: This script assumes you already ran: vagrant up & vagrant ssh
-# IMPORTANT: In the VM, create a mysql_pw.txt file outside of this script & put
-# in the MySQL password you want for root BEFORE running this script.
-# ALSO: Run this script BEFORE you run setup_machine.sh, since setup_machine.sh
-# depends on things set up here first.
-
 # Script name: setup_mysql.sh
-# Description: This script installS MySQL (on a CentOS 7machine) & creates
-# the database & table needed for the Python Flask app, create-jazz-lyric.
+
+# Description: This script:
+# - installS MySQL (on a CentOS 7machine) & creates the database & table needed
+# for the Python Flask app, create-jazz-lyric.
+# - runs as part of main.sh which ran vagrant up & vagrant ssh.
+# - runs BEFORE setup_machine.sh, since setup_machine.sh depends on things
+# set up here first.
+# The root password for MySQL you were prompted for when you ran main.sh:
+# - creates a the file mysql_pw.txt on the VM, outside of this script & puts in
+# that MySQL password which you need BEFORE this script runs.
+# - is in put the file vs. in an environment variable, so it is on the
+# filesystem & can be reused for other purposes. You can't reuse it if done
+# a diff way, e.g., you add a user prompt for password at start of script.
+
 # Author: Kim Lew
 
-# Options to immediately exit:
-# -e - the command that gives a non-zero status
-# -o pipefail - the whole pipeline when 1st command has non-zero status code
-set -eo pipefail
-
-sudo yum update -y
-sudo yum install nano -y
-sudo yum install wget -y
-sudo yum install expect -y
-
-# Note: The root password is in the file, mysql_pw.txt vs. in an environment
-# variable, so it is on the filesystem & can be reused for other purposes. You
-# can't reuse it if done a diff way, e.g., you add a user prompt for password
-# at start of script.
-
-MYSQL_PW_FILE='mysql_pw.txt'
-if [ -f "$MYSQL_PW_FILE" ]; then
-  MYSQL_ROOT_PWD=$(cat "$MYSQL_PW_FILE")
-else
-  echo "${MYSQL_PW_FILE} is missing. Create it, add root password, save & re-run this script."
-  echo
-  exit 1
-fi
-#=== FUNCTION ==================================================================
+# === FUNCTION ================================================================
 run_mysql_secure_installation() {
   # Temporary password is created with MySQL installation in /var/log/mysqld.log.
   # Assign to variable to use if mysql_secure_installation has NOT been run yet."
@@ -47,8 +30,6 @@ run_mysql_secure_installation() {
   # Use HERE document vs. as a straight multiline string - to avoid quoting issues
   echo
   echo "GETTING assigned root password from file..."
-  MYSQL_ROOT_PWD=$(<${MYSQL_PW_FILE})
-  echo "new root password: ${MYSQL_ROOT_PWD}"
   echo
 
 expect -f '-' <<HERE
@@ -97,9 +78,32 @@ HERE
 echo "RAN mysql_secure_installation & root password has been assigned for MySQL."
 echo
 }
+# === End of FUNCTIONS =========================================================
+
+set -eo pipefail
+# Note: Used these options to immediately exit:
+# -e - gives a non-zero status code
+# -o pipefail - refers to whole pipeline when 1st command has non-zero status code
+
+MYSQL_PW_FILE='mysql_pw.txt'
+if [ -f "$MYSQL_PW_FILE" ]; then
+  MYSQL_ROOT_PWD=$(cat "$MYSQL_PW_FILE")
+  echo
+  echo "EXISTS: ${MYSQL_PW_FILE} with root password for MySQL"
+  echo
+else
+  echo "MISSING: ${MYSQL_PW_FILE}. Re-run main.sh to create it with a password."
+  echo
+  exit 1
+fi
+
+sudo yum update -y
+sudo yum install nano -y
+sudo yum install wget -y
+sudo yum install expect -y
 
 #-------------------------------------------------------------------------------
-# CHECKING for MySQL - GET, VERIFY & INSTALL MySQL package
+# CHECK for MySQL - GET, VERIFY & INSTALL MySQL package
 #-------------------------------------------------------------------------------
 if [ "$(sudo yum repolist enabled | grep "mysql.*-community.*")" != '' ] && command -v mysqld; then
   echo "MySQL package repos AND MySQL server are already installed."
@@ -129,6 +133,7 @@ else
     echo "FAILED md5sum check for the MySQL file. Exiting the script."
     exit 1
   fi
+  echo
   echo "GOT & VERIFIED MySQL package."
 
   # CHECK if you can successfully query mysql80-community-release package, i.e.,
@@ -143,6 +148,7 @@ else
   fi
   echo
   echo "NOW installing MySQL package & MySQL Server."
+  echo
   sudo rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2022
   sudo rpm -ivh "${MYSQL_PKG}"
   sudo yum install mysql-server -y
@@ -184,7 +190,7 @@ fi
 # the root password - which the function, run_mysql_secure_installation does.
 echo
 echo "NO assigned ROOT password yet."
-echo "CHECKING if temp root password ${MYSQL_TEMP_PWD} works with MySQL..."
+echo "SEEING if temp root password works with MySQL..."
 echo
 if expect -f '-' <<HERE
 set timeout 5
@@ -196,14 +202,14 @@ exit [lindex [wait] 3]
 HERE
 then
   echo
-  echo "Temporary password exists so you have NOT run mysql_secure_installation yet."
-  echo "RUNNING mysql_secure_installation program with temp root password..."
+  echo "Temporary root password exists so you have NOT run mysql_secure_installation yet."
+  echo "RUNNING mysql_secure_installation program with temporary root password..."
   echo
   run_mysql_secure_installation
 fi
 
 # CHECK if mysql_secure_installation was already run & root password assigned.
-echo "TEST if root password runs MySQL, i.e., mysql_secure_installation was already run."
+echo "SEEING if root password runs MySQL, i.e., if mysql_secure_installation was already run."
 echo
 if expect -f '-' <<HERE
 set timeout 5
@@ -215,7 +221,7 @@ exit [lindex [wait] 3]
 HERE
 then
   echo
-  echo "ROOT password assigned in ${MYSQL_ROOT_PWD} WORKED!"
+  echo "ROOT password assigned in mysql_pw.txt WORKED!"
   echo "MySQL is installed & mysql_secure_installation was run."
 fi
 
@@ -241,7 +247,7 @@ send "$MYSQL_ROOT_PWD\r"
 expect eof
 exit [lindex [wait] 3]
 HERE
-echo "Done creating database and table."
+echo "DONE creating database and table."
 echo
 # NOTE: At this point, you are in the directory, pythonapp-createjazzlyric.
 
