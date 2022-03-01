@@ -82,3 +82,5 @@ else
     echo 'DB_NAME=lyric_db'
   } > .env
 fi
+# At this point, when this script is done which is run by vagrant ssh, you are
+# back on your Mac/local machine.
