@@ -28,10 +28,6 @@ run_mysql_secure_installation() {
   # -f flag means to use a file & to use standard input as the file
   # -c flag prefaces a command to be executed before any in the script
   # Use HERE document vs. as a straight multiline string - to avoid quoting issues
-  echo
-  echo "GETTING assigned root password from file..."
-  echo
-
 expect -f '-' <<HERE
 set timeout 10
 spawn mysql_secure_installation
@@ -202,8 +198,8 @@ exit [lindex [wait] 3]
 HERE
 then
   echo
-  echo "Temporary root password exists so you have NOT run mysql_secure_installation yet."
-  echo "RUNNING mysql_secure_installation program with temporary root password..."
+  echo "Temporary root password for MySQL exists, so you have NOT run mysql_secure_installation yet."
+  echo "WILL NOW RUN run mysql_secure_installation & set password to use the one from ${MYSQL_PW_FILE}."
   echo
   run_mysql_secure_installation
 fi
