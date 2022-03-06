@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block body %}
+
+<h2><i> {{ page_title }} &#127927; &#127926; &#127930;</i></h2>
+
+<table>
+    <tr>
+        <td>
+            {% set ns = namespace(count = 0) %}
+            {% for one_lyric in all_lyrics %}
+
+                {% if ns.count > 1 and ns.count % 4 == 0 %}
+                    </br>
+                {% endif %}
+
+                <p>{{ one_lyric[0] }} ({{ one_lyric[1].strftime('%Y-%b-%d') }})</p>
+
+                {% set ns.count = ns.count + 1 %}
+            {% endfor %}
+        </td>
+
+        <td valign="top">
+            <p><a href="/">Create a Jazz Lyric</a></p>
+        </td>
+    </tr>
+</table>
+
+
+{% endblock %}

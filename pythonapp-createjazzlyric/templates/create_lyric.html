@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block body %}
+
+<h2>{{ the_title }}</h2>
+
+<form method='POST' action='/show_lyric'>
+
+    <table>
+        <tr>
+            <td>Enter 1st vowel: </td>
+            <td><input name='vowel1' type='TEXT' size="1" maxlength="1" value="{{ request.form['vowel1'] }}"></td>
+            <td class="usermsg"> {{ the_msg_params['need_vowel1_msg'] }} </td>
+        </tr>
+        <tr>
+            <td>Enter 2nd vowel: </td>
+            <td><input name='vowel2' type='TEXT' size="1" maxlength="1" value="{{ request.form['vowel2'] }}"></td>
+            <td class="usermsg"> {{ the_msg_params['need_vowel2_msg'] }} </td>
+        </tr>
+        <tr>
+            <td>Enter number of 2nd vowels (3-9): </td>
+            <td><input name='vowel2_amount' type='TEXT' size="1" maxlength="1" value="{{ request.form['vowel2_amount'] }}"></td>
+            <td class="usermsg"> {{ the_msg_params['need_number_msg'] }} </td>
+        </tr>
+        <tr>
+            <td>Enter consonant: </td>
+            <td><input name='consonant' type='TEXT' size="1" maxlength="1"value="{{ request.form['consonant'] }}"></td>
+            <td class="usermsg"> {{ the_msg_params['need_consonant_msg'] }} </td>
+        </tr>
+    </table>
+
+    <p><input value='Create' type='SUBMIT'></p>
+
+</form>
+{% endblock %}
