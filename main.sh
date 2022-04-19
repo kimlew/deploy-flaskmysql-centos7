@@ -3,13 +3,11 @@
 # Script name: main.sh
 
 # Description: This script runs all the other scripts required to setup the
-# machine with MySQL and other programs to be able to run the Python Flask app,
+# machine with MySQL and other programs, to be able to run the Python Flask app,
 # Create Jazz Lyric. This script uses the commands:
 # read - to read the desired database password from the user, with -s option to
-# not echo passwords characters to terminal
+# prevent echo-ing passwords characters to the terminal output.
 # ssh - to run individual commands on the vagrant box
-# nohup - on the Vagrant box, to run 'pipenv run flask run' in the background
-# without quitting when 'ssh' disconnects
 
 # Author: Kim Lew
 
@@ -24,10 +22,8 @@ hide_mid_chars() {
   echo
 }
 # Prompt user for root MySQL password, with -s so is silent mode/chars not shown,
-# e.g., read -p "Type password: " -s -r MYSQL_ROOT_PWD
-# stty -echo still prints out the characters, but hides any input that didn't make it to the read command
-# Verifies password according to MySQL password policies in setup_mysql.sh.
-# echo -n "Type a root password for MySQL: "
+# e.g., read -p "Type password: " -rs MYSQL_ROOT_PWD
+# Verify password according to MySQL password policies in setup_mysql.sh.
 read -rsep "Type a root password for MySQL: " PASSWORD_ROOT
 echo
 read -rsep "Re-type the root password for MySQL: " PASSWORD_CONFIRMED
