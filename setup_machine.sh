@@ -1,31 +1,30 @@
 #! /bin/bash
 
-# Note: This script assumes you already ran: vagrant up & vagrant ssh
-# Important: Run setup_mysql.sh BEFORE running this script, setup_machine.sh.
-
 # Script name: setup_machine.sh
-# Description: This script sets up the server to run the Python Flask web app,
-# create-jazz-lyric.
-# Note: .flaskenv created near end of this script.
-# Author: Kim Lew
-# Currently: This shell script sets up a Vagrant VM CentOS 7 with required software.
-# Later: Modify it to deploy the app onto AWS.
 
-# Type: help set - to see meanings of these flags:
+# Description: This script sets up the server to run the Python Flask web app,
+# Ceate Jazz Lyric. This script runs:
+# - as part of main.sh which ran: vagrant up & vagrant ssh
+# - AFTER setup_mysql.sh
+# Note: .flaskenv is created near end of this script.
+# Now: This shell script sets up a Vagrant CentOS 7 VM  with required software.
+# Later: Modify this script to deploy the app onto AWS.
+
+# Author: Kim Lew
+
+# Note: Can type: help set - to see meanings of these flags:
 # -e  Exit immediately if a command exits with a non-zero status.
 # -x  Print commands and their arguments as they are executed.
-
 set -e
-
 cd /home/vagrant
 sudo yum update -y
 
-# Check if nano already installed & install if not. "" or check exit code?
+# Check if nano already installed & install if not. Check for "" or exit code.
 if ! command -v nano &> /dev/null; then
   sudo yum install nano -y
 fi
 
-# https://tecadmin.net/install-python-3-9-on-centos/
+# Refer to: https://tecadmin.net/install-python-3-9-on-centos/
 sudo yum install gcc openssl-devel bzip2-devel libffi-devel zlib-devel -y
 # Check if wget already installed & install if not.
 if ! command -v wget &> /dev/null; then
@@ -63,7 +62,7 @@ echo
 
 # FLASK_ENV - by default, is production, which doesn't do anything noticeable.
 # development - see reloader starts working & your app is put into debug mode
-# Default port for Flask here is 5000. So if I don't set to anything else, IS 5000.
+# Default port for Flask is 5000. So if I don't set to anything else, IS 5000.
 # FLASK_RUN_PORT=8084
 cat > .flaskenv <<EOF
   FLASK_APP=create_jazz_lyric
@@ -82,5 +81,4 @@ else
     echo 'DB_NAME=lyric_db'
   } > .env
 fi
-# At this point, when this script is done which is run by vagrant ssh, you are
-# back on your Mac/local machine.
+# At this point, when this script is done, you are back on your Mac/local machine.

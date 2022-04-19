@@ -3,17 +3,16 @@
 # Script name: setup_mysql.sh
 
 # Description: This script:
-# - installS MySQL (on a CentOS 7machine) & creates the database & table needed
+# - installs MySQL (on a CentOS 7 machine) & creates the database & table needed
 # for the Python Flask app, create-jazz-lyric.
-# - runs as part of main.sh which ran vagrant up & vagrant ssh.
-# - runs BEFORE setup_machine.sh, since setup_machine.sh depends on things
-# set up here first.
+# - runs as part of main.sh which ran: vagrant up & vagrant ssh
+# - runs BEFORE setup_machine.sh, since setup_machine.sh depends on things done
+# here first.
 # The root password for MySQL you were prompted for when you ran main.sh:
-# - creates a the file mysql_pw.txt on the VM, outside of this script & puts in
-# that MySQL password which you need BEFORE this script runs.
-# - is in put the file vs. in an environment variable, so it is on the
-# filesystem & can be reused for other purposes. You can't reuse it if done
-# a diff way, e.g., you add a user prompt for password at start of script.
+# - creates a the file mysql_pw.txt on the VM, outside of this script, & puts in
+# the MySQL password you gave into the file, BEFORE this script runs.
+# - is put the file vs. in an environment variable, so it is on the filesystem &
+# can be reused.
 
 # Author: Kim Lew
 
@@ -105,7 +104,7 @@ if [ "$(sudo yum repolist enabled | grep "mysql.*-community.*")" != '' ] && comm
   echo "MySQL package repos AND MySQL server are already installed."
   echo
 else
-  # MySQL is NOT installed Get, verify & install MySQL package.
+  # MySQL is NOT installed yet. Verify & install MySQL package.
   echo
   echo "MySQL is NOT installed yet. GETTING and VERIFYING MySQL mysql80-community-release-el7-4."
 
@@ -247,7 +246,7 @@ echo "DONE creating database and table."
 echo
 # NOTE: At this point, you are in the directory, pythonapp-createjazzlyric.
 
-# TEST CASE 1: Manually uninstall MySQL client, db files,  MySQL server, &
+# TEST CASE 1: Manually uninstall MySQL client, db files, MySQL server, &
 # server-related files with these commands & re-run script. Use these 4 commands:
 #  sudo yum erase mysql  # Removes the client.
 #  sudo rm -rf /var/lib/mysql  # Deletes the database files.*
