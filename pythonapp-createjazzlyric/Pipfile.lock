@@ -30,7 +30,7 @@
                 "sha256:cb90f62f1d8e4dc4621f52106613488b5ba826b2e1e10a33eac92f723093ab6a"
             ],
             "index": "pypi",
-            "version": "==2.0.2"
+            "version": "==2.2.5"
         },
         "itsdangerous": {
             "hashes": [
