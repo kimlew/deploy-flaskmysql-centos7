@@ -7,7 +7,7 @@ Jinja2==3.0.1
 lazy-object-proxy==1.6.0
 MarkupSafe==2.0.1
 mccabe==0.6.1
-mysql-connector-python==8.0.26
+mysql-connector-python==9.1.0
 platformdirs==2.4.0
 protobuf==3.18.3
 pylint==2.11.1
